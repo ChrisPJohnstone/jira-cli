@@ -1,0 +1,11 @@
+# Virtual Environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+build/
+*.egg-info/
+
+# Coverage
+.coverage
+coverage.lcov
