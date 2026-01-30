@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
-from logging import CRITICAL, DEBUG, ERROR, INFO, NOTSET, WARNING
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
 from typing import Final
 
 BASE_HELP_STRING: Final[str] = """
 Configure the logging level. Default: {default}
-
-https://docs.python.org/3/library/logging.html#levels
+Documentation: https://docs.python.org/3/library/logging.html#levels
 """
+CHOICES: Final[list[int]] = [DEBUG, INFO, WARNING, ERROR, CRITICAL]
+METAVAR: Final[str] = "LOG_LEVEL"
 
 
 def log_level(default: int = WARNING) -> ArgumentParser:
@@ -20,7 +21,8 @@ def log_level(default: int = WARNING) -> ArgumentParser:
     parser.add_argument(
         "--log-level",
         type=int,
-        choices=[NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL],
+        metavar=METAVAR,
+        choices=CHOICES,
         default=default,
         help=BASE_HELP_STRING.format(default=default).strip(),
     )
