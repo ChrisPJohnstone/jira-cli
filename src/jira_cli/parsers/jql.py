@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from .type_definitions import AddArgumentKwargs
+from ._base import inheritable_parser
 
 
 def jql(
@@ -19,14 +19,12 @@ def jql(
     Returns:
         ArgumentParser: The configured argument parser for JQL.
     """
-    kwargs: AddArgumentKwargs = {
-        "type": str,
-        "required": required,
-        "help": help_str.strip(),
-    }
     if default is not None:
-        kwargs["default"] = default
-        kwargs["help"] += f" Default: {default}"
-    parser: ArgumentParser = ArgumentParser(add_help=False)
-    parser.add_argument("--jql", **kwargs)
-    return parser
+        help_str += f" Default: {default}"
+    return inheritable_parser(
+        arg_names=["--jql"],
+        arg_type=str,
+        required=required,
+        default=default,
+        help=help_str.strip(),
+    )

@@ -2,7 +2,7 @@ from argparse import ArgumentParser, SUPPRESS
 from pathlib import Path
 from typing import Final
 
-from .type_definitions import AddArgumentKwargs
+from ._base import inheritable_parser
 
 DEFAULT_ARG_NAME: Final[str] = "path"
 
@@ -25,14 +25,12 @@ def path(
     Returns:
         ArgumentParser: The configured argument parser for log level.
     """
-    kwargs: AddArgumentKwargs = {
-        "dest": dest or arg_name.replace("-", "_"),
-        "type": Path,
-        "default": default,
-        "help": help_str.strip(),
-    }
     if default is not SUPPRESS:
-        kwargs["help"] += f" Default: {default}"
-    parser: ArgumentParser = ArgumentParser(add_help=False)
-    parser.add_argument(f"--{arg_name}", **kwargs)
-    return parser
+        help_str += f" Default: {default}"
+    return inheritable_parser(
+        arg_names=[f"--{arg_name}"],
+        arg_type=Path,
+        default=default,
+        help=help_str.strip(),
+        dest=dest,
+    )
