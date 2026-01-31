@@ -9,7 +9,7 @@ HelpSubCommands: dict[EnumCommands, dict[EnumSubCommands, str]] = {
     EnumCommands.CONFIG: {
         EnumSubCommands.SHOW: "Show Jira CLI configuration.",
     },
-    EnumCommands.TICKET: {
+    EnumCommands.ISSUE: {
         EnumSubCommands.SEARCH: "List Jira tickets",
     },
 }
