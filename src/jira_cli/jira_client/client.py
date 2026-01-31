@@ -160,7 +160,7 @@ class JiraClient:
         base64_bytes: bytes = b64encode(auth_bytes)
         return base64_bytes.decode("ascii")
 
-    def _scroll(
+    def get_results(
         self,
         method: str,
         api_version: APIVersion,
@@ -181,7 +181,6 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
-        # TODO: Add pagination for other endpoints
         base_url: str = f"{self.base_url}{api_version}{endpoint}"
         while True:
             url: str = f"{base_url}?{urlencode(parameters)}"
@@ -191,10 +190,19 @@ class JiraClient:
             # TODO: Improve handling
             data: JSONObject = json.loads(response.read().decode("utf-8"))
             yield data
-            if data["isLast"]:
-                self._log(DEBUG, "All tickets fetched, exiting loop")
-                return
-            parameters["nextPageToken"] = data["nextPageToken"]
+            # TODO: Move pagination logic to separate method
+            match api_version:
+                case APIVersion.CLOUD:
+                    if data["isLast"]:
+                        self._log(DEBUG, "All tickets fetched, exiting loop")
+                        return
+                    parameters["nextPageToken"] = data["nextPageToken"]
+                case APIVersion.SOFTWARE_CLOUD:
+                    parameters["startAt"] = data["startAt"] + data["maxResults"]
+                case _:
+                    raise NotImplementedError(
+                        f"Pagination not implemented for API version: {api_version}"
+                    )
 
     def search_issues(
         self,
@@ -224,7 +232,7 @@ class JiraClient:
             parameters["fields"] = ",".join(fields)
             parameters["fieldsByKeys"] = True
         counter: int = 0
-        for response in self._scroll(
+        for response in self.get_results(
             method="GET",
             api_version=APIVersion.CLOUD,
             endpoint=ENDPOINT_SEARCH_JQL,
@@ -270,21 +278,23 @@ class JiraClient:
         if project is not None:
             parameters["projectKeyOrId"] = project
         counter: int = 0
-        for response in self._scroll(
+        for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
             endpoint=ENDPOINT_SEARCH_BOARD,
             headers=headers,
             parameters=parameters,
         ):
-            for dashboard in response["values"]:
+            dashboards: list[JSONObject] = response["values"]
+            if len(dashboards) == 0:
+                self._log(DEBUG, "No more dashboards found, exiting loop")
+                return
+            for dashboard in dashboards:
                 yield dashboard
                 counter += 1
                 if limit > 0 and counter >= limit:
                     self._log(DEBUG, "Limit reached, exiting loop")
                     return
-            break
-            # TODO: Implement scroll
 
     def search_board_issues(
         self,
@@ -312,18 +322,20 @@ class JiraClient:
         if jql is not None:
             parameters["jql"] = jql
         counter: int = 0
-        for response in self._scroll(
+        for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
             endpoint=ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id),
             headers=headers,
             parameters=parameters,
         ):
-            for issue in response["issues"]:
+            issues: list[JSONObject] = response["issues"]
+            if len(issues) == 0:
+                self._log(DEBUG, "No more issues found, exiting loop")
+                return
+            for issue in issues:
                 yield issue
                 counter += 1
                 if limit > 0 and counter >= limit:
                     self._log(DEBUG, "Limit reached, exiting loop")
                     return
-            break
-            # TODO: Implement scroll
