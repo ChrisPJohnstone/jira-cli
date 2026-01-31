@@ -7,6 +7,7 @@ from urllib.request import Request, urlopen
 import json
 
 from .constants import (
+    APIVersion,
     BoardType,
     DEFAULT_PAGE_SIZE,
     ENDPOINT_SEARCH_BOARD,
@@ -162,7 +163,8 @@ class JiraClient:
     def _scroll(
         self,
         method: str,
-        base_url: str,
+        api_version: APIVersion,
+        endpoint: str,
         headers: dict[str, str],
         parameters: JSONObject,
     ) -> Iterator[JSONObject]:
@@ -171,7 +173,8 @@ class JiraClient:
 
         Args:
             method (str): HTTP method (e.g., "GET", "POST").
-            base_url (str): Base URL for the API endpoint.
+            api_version (APIVersion): API version to use.
+            endpoint (str): API endpoint to call.
             headers (dict[str, str]): HTTP headers for the request.
             parameters (JSONObject): Query parameters for the request.
 
@@ -179,6 +182,7 @@ class JiraClient:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
         # TODO: Add pagination for other endpoints
+        base_url: str = f"{self.base_url}{api_version}{endpoint}"
         while True:
             url: str = f"{base_url}?{urlencode(parameters)}"
             request: Request = Request(method=method, url=url, headers=headers)
@@ -222,7 +226,8 @@ class JiraClient:
         counter: int = 0
         for response in self._scroll(
             method="GET",
-            base_url=f"{self.base_url}{ENDPOINT_SEARCH_JQL}",
+            api_version=APIVersion.CLOUD,
+            endpoint=ENDPOINT_SEARCH_JQL,
             headers=headers,
             parameters=parameters,
         ):
@@ -267,7 +272,8 @@ class JiraClient:
         counter: int = 0
         for response in self._scroll(
             method="GET",
-            base_url=f"{self.base_url}{ENDPOINT_SEARCH_BOARD}",
+            api_version=APIVersion.SOFTWARE_CLOUD,
+            endpoint=ENDPOINT_SEARCH_BOARD,
             headers=headers,
             parameters=parameters,
         ):
@@ -298,7 +304,6 @@ class JiraClient:
             Iterator[JSONObject]: An iterator over the issues.
         """
         self._log(DEBUG, f"Fetching issues for board ID: {board_id}")
-        suffix: str = ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id)
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
@@ -309,7 +314,8 @@ class JiraClient:
         counter: int = 0
         for response in self._scroll(
             method="GET",
-            base_url=f"{self.base_url}{suffix}",
+            api_version=APIVersion.SOFTWARE_CLOUD,
+            endpoint=ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id),
             headers=headers,
             parameters=parameters,
         ):
