@@ -12,9 +12,10 @@ from jira_cli.constants import (
     CONFIG_PATH_DEST,
     DEFAULT_CONFIG_PATH,
     DEFAULT_LOG_LEVEL,
+    HelpCommands,
+    HelpSubCommands,
 )
 from jira_cli.commands import COMMANDS, shared_parsers
-from jira_cli.constants import HelpCommands, HelpSubCommands
 
 
 def main_parser() -> ArgumentParser:
