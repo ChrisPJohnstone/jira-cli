@@ -1,5 +1,12 @@
 from argparse import ArgumentParser
 
+from parsers import jql
+
 
 def command_parsers() -> list[ArgumentParser]:
-    return []
+    return [
+        jql(
+            help_str="JQL query for tickets to get.",
+            required=True,
+        ),
+    ]

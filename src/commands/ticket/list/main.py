@@ -18,7 +18,7 @@ def main(args: Namespace) -> None:
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
     for issue in jira_client.list_issues(
-        jql="project = 'MDATA'",
+        jql=args.jql,
         fields=["summary"],
         limit=10,
         # TODO: Move to arg parser
