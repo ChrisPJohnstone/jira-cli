@@ -3,7 +3,6 @@ import json
 
 from jira_cli.config import Config
 from jira_cli.jira_client import JiraClient
-from jira_cli.type_definitions import JSONObject
 
 
 def main(args: Namespace) -> None:
