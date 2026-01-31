@@ -2,6 +2,7 @@ from .jql import jql
 from .limit import limit
 from .log_level import log_level
 from .path import path
+from .project import project
 
 
 __all__: list[str] = [
@@ -9,4 +10,5 @@ __all__: list[str] = [
     "limit",
     "log_level",
     "path",
+    "project",
 ]

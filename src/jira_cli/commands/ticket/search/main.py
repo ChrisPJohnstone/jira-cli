@@ -17,7 +17,7 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    for issue in jira_client.list_issues(
+    for issue in jira_client.search_issues(
         jql=args.jql,
         fields=["summary"],
         limit=args.limit,

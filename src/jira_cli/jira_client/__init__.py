@@ -7,6 +7,7 @@ from .constants import (
     JIRA_SOFTWARE_CLOUD_PREFIX,
 )
 from .client import JiraClient
+from .type_definitions import SearchBoardsArgs
 
 
 __all__: list[str] = [
@@ -17,4 +18,5 @@ __all__: list[str] = [
     "JiraClient",
     "JIRA_CLOUD_PREFIX",
     "JIRA_SOFTWARE_CLOUD_PREFIX",
+    "SearchBoardsArgs",
 ]

@@ -191,7 +191,7 @@ class JiraClient:
                 return
             parameters["nextPageToken"] = data["nextPageToken"]
 
-    def list_issues(
+    def search_issues(
         self,
         jql: str,
         fields: list[str] | None = None,
@@ -232,7 +232,7 @@ class JiraClient:
                     self._log(DEBUG, "Limit reached, exiting loop")
                     return
 
-    def list_boards(
+    def search_boards(
         self,
         board_type: BoardType | None = None,
         name: str | None = None,

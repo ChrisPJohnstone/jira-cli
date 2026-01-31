@@ -2,7 +2,7 @@ from argparse import Namespace
 import json
 
 from jira_cli.config import Config
-from jira_cli.jira_client import JiraClient
+from jira_cli.jira_client import JiraClient, SearchBoardsArgs
 
 
 def main(args: Namespace) -> None:
@@ -17,6 +17,9 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    for board in jira_client.list_boards(limit=args.limit):
+    kwargs: SearchBoardsArgs = {"limit": args.limit}
+    if hasattr(args, "project"):
+        kwargs["project"] = args.project
+    for board in jira_client.search_boards(**kwargs):
         # TODO: Add args for method params
         print(json.dumps(board))
