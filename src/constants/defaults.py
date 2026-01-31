@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Final
 
 
+DEFAULT_LIMIT: Final[int] = 10
 DEFAULT_LOG_LEVEL: Final[int] = WARNING
 DEFAULT_CONFIG_DIR: Final[Path] = Path.home() / ".config" / "jira_cli"
 DEFAULT_CONFIG_FILE: Final[str] = "config.toml"

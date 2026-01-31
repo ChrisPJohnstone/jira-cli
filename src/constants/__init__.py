@@ -7,6 +7,7 @@ from .defaults import (
     DEFAULT_CONFIG_DIR,
     DEFAULT_CONFIG_FILE,
     DEFAULT_CONFIG_PATH,
+    DEFAULT_LIMIT,
     DEFAULT_LOG_LEVEL,
 )
 from .enum_commands import EnumCommands
@@ -22,6 +23,7 @@ __all__: list[str] = [
     "DEFAULT_CONFIG_DIR",
     "DEFAULT_CONFIG_FILE",
     "DEFAULT_CONFIG_PATH",
+    "DEFAULT_LIMIT",
     "DEFAULT_LOG_LEVEL",
     "EnumCommands",
     "EnumSubCommands",

@@ -177,6 +177,7 @@ class JiraClient:
             request: Request = Request(method=method, url=url, headers=headers)
             self._log(DEBUG, f"Making request to URL: {url}")
             response: HTTPResponse = urlopen(request)
+            # TODO: Improve handling
             data: JSONObject = json.loads(response.read().decode("utf-8"))
             yield data
             if data["isLast"]:
@@ -201,6 +202,7 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the issues.
         """
+        # TODO: Validate JQL
         self._log(DEBUG, "Fetching issues")
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",

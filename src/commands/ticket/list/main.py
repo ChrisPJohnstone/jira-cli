@@ -20,7 +20,7 @@ def main(args: Namespace) -> None:
     for issue in jira_client.list_issues(
         jql=args.jql,
         fields=["summary"],
-        limit=10,
+        limit=args.limit,
         # TODO: Move to arg parser
     ):
         key: str = issue["key"]

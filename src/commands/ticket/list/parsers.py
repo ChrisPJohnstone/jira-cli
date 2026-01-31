@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from parsers import jql
+from parsers import jql, limit
 
 
 def command_parsers() -> list[ArgumentParser]:
@@ -9,4 +9,5 @@ def command_parsers() -> list[ArgumentParser]:
             help_str="JQL query for tickets to get.",
             required=True,
         ),
+        limit(),
     ]
