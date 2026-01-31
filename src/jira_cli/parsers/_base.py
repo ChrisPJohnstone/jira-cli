@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from collections.abc import Callable
 from typing import Any
 
@@ -53,6 +53,9 @@ def inheritable_parser(
         kwargs["dest"] = dest
     if deprecated:
         kwargs["deprecated"] = deprecated
-    parser: ArgumentParser = ArgumentParser(add_help=False)
+    parser: ArgumentParser = ArgumentParser(
+        formatter_class=RawTextHelpFormatter,
+        add_help=False,
+    )
     parser.add_argument(*arg_names, **kwargs)
     return parser

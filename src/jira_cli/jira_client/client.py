@@ -260,7 +260,7 @@ class JiraClient:
         if name is not None:
             parameters["name"] = name
         if board_type is not None:
-            parameters["type"] = board_type.value
+            parameters["type"] = board_type
         if project is not None:
             parameters["projectKeyOrId"] = project
         counter: int = 0

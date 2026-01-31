@@ -20,6 +20,8 @@ def main(args: Namespace) -> None:
     kwargs: SearchBoardsArgs = {"limit": args.limit}
     if hasattr(args, "project"):
         kwargs["project"] = args.project
+    if hasattr(args, "board_type"):
+        kwargs["board_type"] = args.board_type
     for board in jira_client.search_boards(**kwargs):
         # TODO: Add args for method params
         print(json.dumps(board))
