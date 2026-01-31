@@ -36,11 +36,12 @@ def main_parser() -> ArgumentParser:
             required=True,
         )
         for subcommand, subcommand_module in command_module.SUBCOMMANDS.items():
-            subcommand_subs.add_parser(
+            subcommand_parser: ArgumentParser = subcommand_subs.add_parser(
                 name=subcommand,
                 formatter_class=RawTextHelpFormatter,
                 parents=[*shared, *subcommand_module.command_parsers()],
                 help=HelpSubCommands[command][subcommand],
                 description=HelpSubCommands[command][subcommand],
             )
+            subcommand_parser.set_defaults(main=subcommand_module.main)
     return parser
