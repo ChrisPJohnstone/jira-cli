@@ -5,7 +5,7 @@ import tomllib
 import json
 
 from .type_definitions import ConfigRaw
-from constants import DEFAULT_CONFIG_PATH
+from jira_cli.constants import DEFAULT_CONFIG_PATH
 
 
 class Config:

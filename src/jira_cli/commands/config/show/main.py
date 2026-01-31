@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from config import Config
+from jira_cli.config import Config
 
 
 def main(args: Namespace) -> None:

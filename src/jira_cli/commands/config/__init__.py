@@ -1,7 +1,7 @@
 from . import show
 from .parsers import command_parsers
-from constants import EnumSubCommands
-from type_definitions import SubCommandsProperty
+from jira_cli.constants import EnumSubCommands
+from jira_cli.type_definitions import SubCommandsProperty
 
 
 SUBCOMMANDS: SubCommandsProperty = {

@@ -7,8 +7,8 @@ from urllib.request import Request, urlopen
 import json
 
 from .constants import DEFAULT_PAGE_SIZE, ENDPOINT_SEARCH
-from config import Config
-from type_definitions import JSONObject
+from jira_cli.config import Config
+from jira_cli.type_definitions import JSONObject
 
 
 class JiraClient:

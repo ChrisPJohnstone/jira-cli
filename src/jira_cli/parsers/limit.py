@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from constants import DEFAULT_LIMIT
+from jira_cli.constants import DEFAULT_LIMIT
 
 
 def limit(default: int = DEFAULT_LIMIT) -> ArgumentParser:

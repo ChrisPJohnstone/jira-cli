@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from parsers import jql, limit
+from jira_cli.parsers import jql, limit
 
 
 def command_parsers() -> list[ArgumentParser]:
