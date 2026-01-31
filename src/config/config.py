@@ -15,6 +15,7 @@ class Config:
         self,
         jira_base_url: str,
         jira_api_token: str,
+        jira_email: str,
         logger: Logger = getLogger(__name__),
     ) -> None:
         """
@@ -27,6 +28,7 @@ class Config:
         self._log(DEBUG, "Initializing Config instance")
         self.jira_base_url = jira_base_url
         self.jira_api_token = jira_api_token
+        self.jira_email = jira_email
 
     @classmethod
     def from_path(
@@ -55,6 +57,7 @@ class Config:
         return cls(
             jira_base_url=config_raw["jira_base_url"],
             jira_api_token=config_raw["jira_api_token"],
+            jira_email=config_raw["jira_email"],
             logger=logger,
         )
 
@@ -75,6 +78,9 @@ class Config:
     @jira_base_url.setter
     def jira_base_url(self, value: str) -> None:
         self._log(DEBUG, f"Setting jira_base_url to: {value}")
+        if value.endswith("/"):
+            self._log(DEBUG, "Removing trailing slash from jira_base_url")
+            value = value.removesuffix("/")
         self._jira_base_url = value
 
     @property
@@ -87,6 +93,16 @@ class Config:
         self._log(DEBUG, f"Setting jira_api_token to: {value}")
         self._jira_api_token = value
 
+    @property
+    def jira_email(self) -> str:
+        """Returns the Jira email."""
+        return self._jira_email
+
+    @jira_email.setter
+    def jira_email(self, value: str) -> None:
+        self._log(DEBUG, f"Setting jira_email to: {value}")
+        self._jira_email = value
+
     def __str__(self) -> str:
         """
         A string representation of the configuration.
@@ -97,6 +113,7 @@ class Config:
         config_dict: dict[str, Any] = {
             "jira_base_url": self.jira_base_url,
             "jira_api_token": self.jira_api_token,
+            "jira_email": self.jira_email,
         }
         return json.dumps(config_dict, indent=2)
 

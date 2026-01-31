@@ -16,4 +16,4 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    jira_client.authenticate()
+    jira_client.list_tickets()
