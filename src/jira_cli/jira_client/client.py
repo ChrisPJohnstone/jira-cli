@@ -6,7 +6,12 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import json
 
-from .constants import DEFAULT_PAGE_SIZE, ENDPOINT_SEARCH
+from .constants import (
+    BoardType,
+    DEFAULT_PAGE_SIZE,
+    ENDPOINT_DASHBOARD,
+    ENDPOINT_SEARCH,
+)
 from jira_cli.config import Config
 from jira_cli.type_definitions import JSONObject
 
@@ -172,6 +177,7 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
+        # TODO: Add pagination for other endpoints
         while True:
             url: str = f"{base_url}?{urlencode(parameters)}"
             request: Request = Request(method=method, url=url, headers=headers)
@@ -182,7 +188,7 @@ class JiraClient:
             yield data
             if data["isLast"]:
                 self._log(DEBUG, "All tickets fetched, exiting loop")
-                break
+                return
             parameters["nextPageToken"] = data["nextPageToken"]
 
     def list_issues(
@@ -225,3 +231,50 @@ class JiraClient:
                 if limit > 0 and counter >= limit:
                     self._log(DEBUG, "Limit reached, exiting loop")
                     return
+
+    def list_boards(
+        self,
+        board_type: BoardType | None = None,
+        name: str | None = None,
+        project: str | None = None,
+        limit: int = 0,
+    ) -> Iterator[JSONObject]:
+        """
+        Lists dashboards.
+
+        Args:
+            board_type (BoardType | None): Type of board to filter dashboards. Defaults to None.
+            name (str | None): Filters results to boards that match or partially match the specified name.
+            project (str | None): Project key or ID to filter dashboards. Defaults to None.
+            limit (int): Maximum number of dashboards to retrieve. 0 means no limit. Defaults to 0.
+
+        Returns:
+            Iterator[JSONObject]: An iterator over the dashboards.
+        """
+        self._log(DEBUG, "Fetching dashboards")
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {self.auth_header}",
+            "Accept": "application/json",
+        }
+        parameters: JSONObject = {"maxResults": self.page_size}
+        if name is not None:
+            parameters["name"] = name
+        if board_type is not None:
+            parameters["type"] = board_type.value
+        if project is not None:
+            parameters["projectKeyOrId"] = project
+        counter: int = 0
+        for response in self._scroll(
+            method="GET",
+            base_url=f"{self.base_url}{ENDPOINT_DASHBOARD}",
+            headers=headers,
+            parameters=parameters,
+        ):
+            for dashboard in response["values"]:
+                yield dashboard
+                counter += 1
+                if limit > 0 and counter >= limit:
+                    self._log(DEBUG, "Limit reached, exiting loop")
+                    return
+            break
+            # TODO: Implement scroll

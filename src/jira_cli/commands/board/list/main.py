@@ -3,12 +3,11 @@ import json
 
 from jira_cli.config import Config
 from jira_cli.jira_client import JiraClient
-from jira_cli.type_definitions import JSONObject
 
 
 def main(args: Namespace) -> None:
     """
-    Lists all tickets.
+    Lists all boards.
 
     Args:
         args (Namespace): Parsed command-line arguments.
@@ -18,10 +17,6 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    for issue in jira_client.list_issues(
-        jql=args.jql,
-        fields=["summary"],
-        limit=args.limit,
-        # TODO: Move to arg parser
-    ):
-        print(json.dumps(issue))
+    for board in jira_client.list_boards(limit=args.limit):
+        # TODO: Add args for method params
+        print(json.dumps(board))

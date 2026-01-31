@@ -1,12 +1,11 @@
 from .constants import (
-    BoardType,
-    DEFAULT_PAGE_SIZE,
     ENDPOINT_DASHBOARD,
     ENDPOINT_SEARCH,
     JIRA_CLOUD_PREFIX,
     JIRA_SOFTWARE_CLOUD_PREFIX,
 )
-from .client import JiraClient
+from .defaults import DEFAULT_PAGE_SIZE
+from .enum_board_type import BoardType
 
 
 __all__: list[str] = [
@@ -14,7 +13,6 @@ __all__: list[str] = [
     "DEFAULT_PAGE_SIZE",
     "ENDPOINT_DASHBOARD",
     "ENDPOINT_SEARCH",
-    "JiraClient",
     "JIRA_CLOUD_PREFIX",
     "JIRA_SOFTWARE_CLOUD_PREFIX",
 ]
