@@ -20,4 +20,4 @@ exclude = ["*test*"]
 namespaces = true
 
 [tool.pytest.ini_options]
-addopts = '-n auto --ruff'
+addopts = '-n auto --ruff --ruff-format'

@@ -6,6 +6,7 @@ from .type_definitions import AddArgumentKwargs
 
 DEFAULT_ARG_NAME: Final[str] = "path"
 
+
 def path(
     help_str: str,
     arg_name: str = DEFAULT_ARG_NAME,
