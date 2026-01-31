@@ -153,6 +153,37 @@ class JiraClient:
         base64_bytes: bytes = b64encode(auth_bytes)
         return base64_bytes.decode("ascii")
 
+    def _scroll(
+        self,
+        method: str,
+        base_url: str,
+        headers: dict[str, str],
+        parameters: JSONObject,
+    ) -> Iterator[JSONObject]:
+        """
+        Scrolls through paginated API responses.
+
+        Args:
+            method (str): HTTP method (e.g., "GET", "POST").
+            base_url (str): Base URL for the API endpoint.
+            headers (dict[str, str]): HTTP headers for the request.
+            parameters (JSONObject): Query parameters for the request.
+
+        Returns:
+            Iterator[JSONObject]: An iterator over the paginated responses.
+        """
+        while True:
+            url: str = f"{base_url}?{urlencode(parameters)}"
+            request: Request = Request(method=method, url=url, headers=headers)
+            self._log(DEBUG, f"Making request to URL: {url}")
+            response: HTTPResponse = urlopen(request)
+            data: JSONObject = json.loads(response.read().decode("utf-8"))
+            yield data
+            if data["isLast"]:
+                self._log(DEBUG, "All tickets fetched, exiting loop")
+                break
+            parameters["nextPageToken"] = data["nextPageToken"]
+
     def list_issues(
         self,
         jql: str,
@@ -175,25 +206,20 @@ class JiraClient:
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
         }
-        base_url: str = f"{self.base_url}{ENDPOINT_SEARCH}"
         parameters: JSONObject = {"jql": jql, "maxResults": self.page_size}
         if fields is not None:
             parameters["fields"] = ",".join(fields)
             parameters["fieldsByKeys"] = True
         counter: int = 0
-        while True:
-            url: str = f"{base_url}?{urlencode(parameters)}"
-            request: Request = Request(method="GET", url=url, headers=headers)
-            self._log(DEBUG, f"Making request to URL: {url}")
-            response: HTTPResponse = urlopen(request)
-            response_data: str = response.read().decode("utf-8")
-            data: JSONObject = json.loads(response_data)
-            yield from data["issues"]
-            if data["isLast"]:
-                self._log(DEBUG, "All tickets fetched, exiting loop")
-                break
-            counter += len(data["issues"])
-            if limit > 0 and counter >= limit:
-                self._log(DEBUG, "Limit reached, exiting loop")
-                break
-            parameters["nextPageToken"] = data["nextPageToken"]
+        for response in self._scroll(
+            method="GET",
+            base_url=f"{self.base_url}{ENDPOINT_SEARCH}",
+            headers=headers,
+            parameters=parameters,
+        ):
+            for issue in response["issues"]:
+                yield issue
+                counter += 1
+                if limit > 0 and counter >= limit:
+                    self._log(DEBUG, "Limit reached, exiting loop")
+                    return
