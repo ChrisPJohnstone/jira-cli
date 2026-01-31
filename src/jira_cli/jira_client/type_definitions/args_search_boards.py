@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 
-class SearchBoardsArgs(TypedDict, total=False):
+class ArgsSearchBoards(TypedDict, total=False):
     """Type definition for search boards arguments."""
 
     board_type: str

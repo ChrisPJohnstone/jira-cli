@@ -9,8 +9,9 @@ import json
 from .constants import (
     BoardType,
     DEFAULT_PAGE_SIZE,
-    ENDPOINT_DASHBOARD,
-    ENDPOINT_SEARCH,
+    ENDPOINT_SEARCH_BOARD,
+    ENDPOINT_SEARCH_BOARD_ISSUES,
+    ENDPOINT_SEARCH_JQL,
 )
 from jira_cli.config import Config
 from jira_cli.type_definitions import JSONObject
@@ -221,7 +222,7 @@ class JiraClient:
         counter: int = 0
         for response in self._scroll(
             method="GET",
-            base_url=f"{self.base_url}{ENDPOINT_SEARCH}",
+            base_url=f"{self.base_url}{ENDPOINT_SEARCH_JQL}",
             headers=headers,
             parameters=parameters,
         ):
@@ -266,12 +267,54 @@ class JiraClient:
         counter: int = 0
         for response in self._scroll(
             method="GET",
-            base_url=f"{self.base_url}{ENDPOINT_DASHBOARD}",
+            base_url=f"{self.base_url}{ENDPOINT_SEARCH_BOARD}",
             headers=headers,
             parameters=parameters,
         ):
             for dashboard in response["values"]:
                 yield dashboard
+                counter += 1
+                if limit > 0 and counter >= limit:
+                    self._log(DEBUG, "Limit reached, exiting loop")
+                    return
+            break
+            # TODO: Implement scroll
+
+    def search_board_issues(
+        self,
+        board_id: int,
+        jql: str | None = None,
+        limit: int = 0,
+    ) -> Iterator[JSONObject]:
+        """
+        Lists all issues for a given board.
+
+        Args:
+            board_id (int): ID of the board.
+            jql (str | None): JQL query string to filter issues. Defaults to None.
+            limit (int): Maximum number of issues to retrieve. 0 means no limit. Defaults to 0.
+
+        Returns:
+            Iterator[JSONObject]: An iterator over the issues.
+        """
+        self._log(DEBUG, f"Fetching issues for board ID: {board_id}")
+        suffix: str = ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id)
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {self.auth_header}",
+            "Accept": "application/json",
+        }
+        parameters: JSONObject = {"maxResults": self.page_size}
+        if jql is not None:
+            parameters["jql"] = jql
+        counter: int = 0
+        for response in self._scroll(
+            method="GET",
+            base_url=f"{self.base_url}{suffix}",
+            headers=headers,
+            parameters=parameters,
+        ):
+            for issue in response["issues"]:
+                yield issue
                 counter += 1
                 if limit > 0 and counter >= limit:
                     self._log(DEBUG, "Limit reached, exiting loop")

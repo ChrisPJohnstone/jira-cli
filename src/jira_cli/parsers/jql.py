@@ -6,7 +6,7 @@ from ._base import inheritable_parser
 def jql(
     help_str: str,
     default: str | None = None,
-    required: bool = True,
+    required: bool = False,
 ) -> ArgumentParser:
     """
     Creates an inheritable argument parser for a JQL query.
@@ -14,7 +14,7 @@ def jql(
     Args:
         help_str (str): The help string for the argument.
         default (str | None): The default value for the argument. No default is set if None.
-        required (bool): Whether the argument is required. Defaults to True.
+        required (bool): Whether the argument is required. Defaults to False.
 
     Returns:
         ArgumentParser: The configured argument parser for JQL.

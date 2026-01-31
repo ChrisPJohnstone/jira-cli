@@ -2,12 +2,12 @@ from argparse import Namespace
 import json
 
 from jira_cli.config import Config
-from jira_cli.jira_client import ArgsSearchBoards, JiraClient
+from jira_cli.jira_client import ArgsSearchBoardIssues, JiraClient
 
 
 def main(args: Namespace) -> None:
     """
-    Lists all boards.
+    Lists all issues for board.
 
     Args:
         args (Namespace): Parsed command-line arguments.
@@ -17,11 +17,12 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    kwargs: ArgsSearchBoards = {"limit": args.limit}
-    if hasattr(args, "project"):
-        kwargs["project"] = args.project
-    if hasattr(args, "board_type"):
-        kwargs["board_type"] = args.board_type
-    for board in jira_client.search_boards(**kwargs):
+    kwargs: ArgsSearchBoardIssues = {
+        "board_id": args.id,
+        "limit": args.limit,
+    }
+    if hasattr(args, "jql"):
+        kwargs["jql"] = args.jql
+    for board in jira_client.search_board_issues(**kwargs):
         # TODO: Add args for method params
         print(json.dumps(board))

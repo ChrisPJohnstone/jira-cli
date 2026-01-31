@@ -5,6 +5,7 @@ from .enum_subcommands import EnumSubCommands
 HelpSubCommands: dict[EnumCommands, dict[EnumSubCommands, str]] = {
     EnumCommands.BOARD: {
         EnumSubCommands.SEARCH: "List Jira boards.",
+        EnumSubCommands.ISSUES: "List issues for a Jira board.",
     },
     EnumCommands.CONFIG: {
         EnumSubCommands.SHOW: "Show Jira CLI configuration.",
