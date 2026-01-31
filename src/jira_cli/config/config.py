@@ -90,7 +90,7 @@ class Config:
 
     @jira_api_token.setter
     def jira_api_token(self, value: str) -> None:
-        self._log(DEBUG, f"Setting jira_api_token to: {value}")
+        self._log(DEBUG, "Setting jira_api_token")
         self._jira_api_token = value
 
     @property

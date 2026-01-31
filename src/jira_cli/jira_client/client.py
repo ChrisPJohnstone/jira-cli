@@ -93,7 +93,7 @@ class JiraClient:
 
     @api_token.setter
     def api_token(self, value: str) -> None:
-        self._log(DEBUG, f"Setting api_token to: {value}")
+        self._log(DEBUG, "Setting api_token")
         self._api_token: str = value
 
     @property
