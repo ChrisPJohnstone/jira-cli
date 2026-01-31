@@ -13,8 +13,8 @@ class Config:
 
     def __init__(
         self,
-        base_url: str,
-        api_token: str,
+        jira_base_url: str,
+        jira_api_token: str,
         logger: Logger = getLogger(__name__),
     ) -> None:
         """
@@ -25,8 +25,8 @@ class Config:
         """
         self._logger = logger
         self._log(DEBUG, "Initializing Config instance")
-        self.base_url = base_url
-        self.api_token = api_token
+        self.jira_base_url = jira_base_url
+        self.jira_api_token = jira_api_token
 
     @classmethod
     def from_path(
@@ -53,8 +53,8 @@ class Config:
         config_raw: ConfigRaw = tomllib.loads(_path.read_text())  # type: ignore[assignment]
         logger.debug("Config loaded succesfully")
         return cls(
-            base_url=config_raw["base_url"],
-            api_token=config_raw["api_token"],
+            jira_base_url=config_raw["jira_base_url"],
+            jira_api_token=config_raw["jira_api_token"],
             logger=logger,
         )
 
@@ -68,24 +68,24 @@ class Config:
         self.__logger = value
 
     @property
-    def base_url(self) -> str:
+    def jira_base_url(self) -> str:
         """Returns the base URL."""
-        return self._base_url
+        return self._jira_base_url
 
-    @base_url.setter
-    def base_url(self, value: str) -> None:
-        self._log(DEBUG, f"Setting base_url to: {value}")
-        self._base_url = value
+    @jira_base_url.setter
+    def jira_base_url(self, value: str) -> None:
+        self._log(DEBUG, f"Setting jira_base_url to: {value}")
+        self._jira_base_url = value
 
     @property
-    def api_token(self) -> str:
+    def jira_api_token(self) -> str:
         """Returns the API token."""
-        return self._api_token
+        return self._jira_api_token
 
-    @api_token.setter
-    def api_token(self, value: str) -> None:
-        self._log(DEBUG, f"Setting api_token to: {value}")
-        self._api_token = value
+    @jira_api_token.setter
+    def jira_api_token(self, value: str) -> None:
+        self._log(DEBUG, f"Setting jira_api_token to: {value}")
+        self._jira_api_token = value
 
     def __str__(self) -> str:
         """
@@ -95,8 +95,8 @@ class Config:
             str: String representation of the configuration.
         """
         config_dict: dict[str, Any] = {
-            "base_url": self.base_url,
-            "api_token": self.api_token,
+            "jira_base_url": self.jira_base_url,
+            "jira_api_token": self.jira_api_token,
         }
         return json.dumps(config_dict, indent=2)
 

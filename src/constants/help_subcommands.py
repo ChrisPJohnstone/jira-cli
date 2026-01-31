@@ -6,4 +6,7 @@ HelpSubCommands: dict[EnumCommands, dict[EnumSubCommands, str]] = {
     EnumCommands.CONFIG: {
         EnumSubCommands.SHOW: "Show Jira CLI configuration.",
     },
+    EnumCommands.TICKET: {
+        EnumSubCommands.LIST: "List Jira tickets",
+    },
 }
