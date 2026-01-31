@@ -1,13 +1,14 @@
 from base64 import b64encode
+from collections.abc import Iterator
 from http.client import HTTPResponse
 from logging import DEBUG, Logger, getLogger
-from typing import Any
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 import json
 
-from .constants import ENDPOINT_SEARCH
+from .constants import DEFAULT_PAGE_SIZE, ENDPOINT_SEARCH
 from config import Config
+from type_definitions import JSONObject
 
 
 class JiraClient:
@@ -19,6 +20,7 @@ class JiraClient:
         api_token: str,
         email: str,
         logger: Logger = getLogger(__name__),
+        page_size: int = DEFAULT_PAGE_SIZE,
     ) -> None:
         """
         Initializes a JiraClient instance.
@@ -28,12 +30,14 @@ class JiraClient:
             api_token (str): API token for authentication.
             email (str): Email address for authentication.
             logger (Logger): Logger instance.
+            page_size (int): Number of items to fetch per page.
         """
         self._logger = logger
         self._log(DEBUG, "Initializing JiraClient instance")
         self.base_url = base_url
         self.api_token = api_token
         self.email = email
+        self.page_size = page_size
 
     @classmethod
     def from_config(
@@ -65,7 +69,7 @@ class JiraClient:
 
     @_logger.setter
     def _logger(self, value: Logger) -> None:
-        self.__logger = value
+        self.__logger: Logger = value
 
     @property
     def base_url(self) -> str:
@@ -75,7 +79,7 @@ class JiraClient:
     @base_url.setter
     def base_url(self, value: str) -> None:
         self._log(DEBUG, f"Setting base_url to: {value}")
-        self._base_url = value
+        self._base_url: str = value
 
     @property
     def api_token(self) -> str:
@@ -85,7 +89,7 @@ class JiraClient:
     @api_token.setter
     def api_token(self, value: str) -> None:
         self._log(DEBUG, f"Setting api_token to: {value}")
-        self._api_token = value
+        self._api_token: str = value
 
     @property
     def email(self) -> str:
@@ -95,7 +99,17 @@ class JiraClient:
     @email.setter
     def email(self, value: str) -> None:
         self._log(DEBUG, f"Setting email to: {value}")
-        self._email = value
+        self._email: str = value
+
+    @property
+    def page_size(self) -> int:
+        """Returns the page size."""
+        return self._page_size
+
+    @page_size.setter
+    def page_size(self, value: int) -> None:
+        self._log(DEBUG, f"Setting page_size to: {value}")
+        self._page_size: int = value
 
     @property
     def auth_header(self) -> str:
@@ -139,30 +153,47 @@ class JiraClient:
         base64_bytes: bytes = b64encode(auth_bytes)
         return base64_bytes.decode("ascii")
 
-    def list_tickets(self) -> None:
+    def list_issues(
+        self,
+        jql: str,
+        fields: list[str] | None = None,
+        limit: int = 0,
+    ) -> Iterator[JSONObject]:
         """
-        Lists tickets for a given project using JQL search.
+        Lists issues for a given project using JQL search.
 
         Args:
-            project (str): Project key to search for. Defaults to "MDATA".
+            jql (str): JQL query string.
+            fields (list[str] | None): List of fields to retrieve for each issue.
+            limit (int): Maximum number of issues to retrieve. 0 means no limit. Defaults to 0.
 
         Returns:
-            list[dict[str, Any]]: List of ticket/issue dictionaries.
+            Iterator[JSONObject]: An iterator over the issues.
         """
-        # TODO: Parametrize method
-        self._log(DEBUG, "Fetching tickets")
-        params: dict[str, str] = {"jql": "project = MDATA"}
-        url: str = f"{self.base_url}{ENDPOINT_SEARCH}?{urlencode(params)}"
+        self._log(DEBUG, "Fetching issues")
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
         }
-        request: Request = Request(method="GET", url=url, headers=headers)
-        response: HTTPResponse = urlopen(request)
-        response_data: str = response.read().decode("utf-8")
-        data: dict[str, Any] = json.loads(response_data)
-        # TODO: Improve type hint
-        issues: list[dict[str, Any]] = data.get("issues", [])
-        # TODO: Improve type hint
-        for issue in issues:
-            print(issue)
+        base_url: str = f"{self.base_url}{ENDPOINT_SEARCH}"
+        parameters: JSONObject = {"jql": jql, "maxResults": self.page_size}
+        if fields is not None:
+            parameters["fields"] = ",".join(fields)
+            parameters["fieldsByKeys"] = True
+        counter: int = 0
+        while True:
+            url: str = f"{base_url}?{urlencode(parameters)}"
+            request: Request = Request(method="GET", url=url, headers=headers)
+            self._log(DEBUG, f"Making request to URL: {url}")
+            response: HTTPResponse = urlopen(request)
+            response_data: str = response.read().decode("utf-8")
+            data: JSONObject = json.loads(response_data)
+            yield from data["issues"]
+            if data["isLast"]:
+                self._log(DEBUG, "All tickets fetched, exiting loop")
+                break
+            counter += len(data["issues"])
+            if limit > 0 and counter >= limit:
+                self._log(DEBUG, "Limit reached, exiting loop")
+                break
+            parameters["nextPageToken"] = data["nextPageToken"]

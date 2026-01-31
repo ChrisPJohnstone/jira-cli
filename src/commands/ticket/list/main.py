@@ -2,6 +2,7 @@ from argparse import Namespace
 
 from config import Config
 from jira_client import JiraClient
+from type_definitions import JSONObject
 
 
 def main(args: Namespace) -> None:
@@ -16,4 +17,12 @@ def main(args: Namespace) -> None:
         logger=args.logger,
     )
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
-    jira_client.list_tickets()
+    for issue in jira_client.list_issues(
+        jql="project = 'MDATA'",
+        fields=["summary"],
+        limit=10,
+        # TODO: Move to arg parser
+    ):
+        key: str = issue["key"]
+        fields: JSONObject = issue["fields"]
+        print(f"{key}: {fields['summary']}")
