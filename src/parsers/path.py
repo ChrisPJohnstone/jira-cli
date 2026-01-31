@@ -9,6 +9,7 @@ DEFAULT_ARG_NAME: Final[str] = "path"
 def path(
     help_str: str,
     arg_name: str = DEFAULT_ARG_NAME,
+    dest: str | None = None,
     default: str | Path = SUPPRESS,
 ) -> ArgumentParser:
     """
@@ -17,12 +18,14 @@ def path(
     Args:
         help_str (str): The help string for the argument.
         arg_name (str): The name of the argument. Defaults to "path".
+        dest (str): The destination attribute name for the parsed argument. Defaults to arg_name with hyphens replaced by underscores.
         default (str | Path): The default value for the argument. Defaults to SUPPRESS.
 
     Returns:
         ArgumentParser: The configured argument parser for log level.
     """
     kwargs: AddArgumentKwargs = {
+        "dest": dest or arg_name.replace("-", "_"),
         "type": Path,
         "default": default,
         "help": help_str.strip(),

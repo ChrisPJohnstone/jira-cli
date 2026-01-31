@@ -11,7 +11,7 @@ def main(args: Namespace) -> None:
         args (Namespace): Parsed command-line arguments.
     """
     config: Config = Config.from_path(
-        path=getattr(args, "path", None),
+        path=args.config_path,
         logger=args.logger,
     )
     print(config)
