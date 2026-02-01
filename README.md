@@ -72,11 +72,18 @@ Currently implemented using only [Python standard library](https://docs.python.o
     - [parsers/](src/jira_cli/parsers/) Subpackage for global parsers used across commands.
     - [cli.py](src/jira_cli/cli.py) Main entry point for the CLI application.
 
-### Testing
+### Development Run
 
 - You can run the package without reinstalling it by running:
     ```bash
     python src/jira_cli
+    ```
+
+### Testing
+
+- Running tests requires install [requirements-dev.txt](requirements-dev.txt):
+    ```bash
+    pip install -r requirements-dev.txt
     ```
 - Run tests using pytest:
     ```bash
