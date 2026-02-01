@@ -5,6 +5,7 @@ from jira_cli.parsers import log_level, path
 
 
 def shared_parsers() -> list[ArgumentParser]:
+    """Create shared argument parsers for the Jira CLI."""
     return [
         path(
             arg_name=CONFIG_PATH_ARG_NAME,
