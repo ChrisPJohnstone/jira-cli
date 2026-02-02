@@ -110,12 +110,7 @@ class Config:
         Returns:
             str: String representation of the configuration.
         """
-        config_dict: dict[str, Any] = {
-            "jira_base_url": self.jira_base_url,
-            "jira_api_token": self.jira_api_token,
-            "jira_email": self.jira_email,
-        }
-        return json.dumps(config_dict, indent=2)
+        return json.dumps(self.to_dict(), indent=2)
 
     def _message(self, message: str) -> str:
         """
@@ -138,3 +133,16 @@ class Config:
             message (str): Message to log.
         """
         self._logger.log(level, self._message(message))
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Converts the configuration to a dictionary.
+
+        Returns:
+            dict[str, str]: Configuration as a dictionary.
+        """
+        return {
+            "jira_base_url": self.jira_base_url,
+            "jira_api_token": self.jira_api_token,
+            "jira_email": self.jira_email,
+        }

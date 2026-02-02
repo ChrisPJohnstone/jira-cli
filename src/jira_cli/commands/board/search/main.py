@@ -1,8 +1,8 @@
 from argparse import Namespace
-import json
 
 from jira_cli.config import Config
 from jira_cli.jira_client import ArgsSearchBoards, JiraClient
+from jira_cli.utils import write_output
 
 
 def main(args: Namespace) -> None:
@@ -24,4 +24,4 @@ def main(args: Namespace) -> None:
         kwargs["board_type"] = args.board_type
     for board in jira_client.search_boards(**kwargs):
         # TODO: Add args for method params
-        print(json.dumps(board))
+        write_output(board)

@@ -1,8 +1,8 @@
 from argparse import Namespace
-import json
 
 from jira_cli.config import Config
 from jira_cli.jira_client import JiraClient
+from jira_cli.utils import write_output
 
 
 def main(args: Namespace) -> None:
@@ -23,4 +23,4 @@ def main(args: Namespace) -> None:
         limit=args.limit,
         # TODO: Move to arg parser
     ):
-        print(json.dumps(issue))
+        write_output(issue)

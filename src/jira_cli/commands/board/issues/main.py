@@ -1,8 +1,8 @@
 from argparse import Namespace
-import json
 
 from jira_cli.config import Config
 from jira_cli.jira_client import ArgsSearchBoardIssues, JiraClient
+from jira_cli.utils import write_output
 
 
 def main(args: Namespace) -> None:
@@ -25,4 +25,4 @@ def main(args: Namespace) -> None:
         kwargs["jql"] = args.jql
     for board in jira_client.search_board_issues(**kwargs):
         # TODO: Add args for method params
-        print(json.dumps(board))
+        write_output(board)

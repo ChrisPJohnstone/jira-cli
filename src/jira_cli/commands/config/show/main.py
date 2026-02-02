@@ -1,6 +1,7 @@
 from argparse import Namespace
 
 from jira_cli.config import Config
+from jira_cli.utils import write_output
 
 
 def main(args: Namespace) -> None:
@@ -14,4 +15,4 @@ def main(args: Namespace) -> None:
         path=args.config_path,
         logger=args.logger,
     )
-    print(config)
+    write_output(config.to_dict())
