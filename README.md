@@ -90,6 +90,10 @@ Currently implemented using only [Python standard library](https://docs.python.o
     pytest
     ```
 
+### Contributing
+
+Contributes must be done through a pull request with passing tests.
+
 ## Links
 
 - [API Documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about)
