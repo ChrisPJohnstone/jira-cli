@@ -189,6 +189,25 @@ class JiraClient:
         request: Request = Request(**kwargs)
         return urlopen(request)
 
+    def _next_page_body(
+        self,
+        api_version: APIVersion,
+        body: JSONObject,
+        response: JSONObject,
+    ) -> JSONObject:
+        output: JSONObject = body.copy()
+        match api_version:
+            case APIVersion.CLOUD:
+                if response["isLast"]:
+                    self._log(DEBUG, "All pages fetched, exiting loop")
+                    return {}
+                output["nextPageToken"] = response["nextPageToken"]
+            case APIVersion.SOFTWARE_CLOUD:
+                output["startAt"] = response["startAt"] + response["maxResults"]
+            case _:
+                raise NotImplementedError(f"No pagination for: {api_version}")
+        return output
+
     def get_results(
         self,
         method: str,
@@ -212,32 +231,15 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
-        base_url: str = f"{self.base_url}{api_version}{endpoint}"
-        while True:
-            response: HTTPResponse = self._request(
-                method=method,
-                url=base_url,
-                headers=headers,
-                body=body,
-            )
+        url: str = f"{self.base_url}{api_version}{endpoint}"
+        while body:
+            response: HTTPResponse = self._request(method, url, headers, body)
             data: JSONObject = json.loads(response.read().decode("utf-8"))
             yield data
             if not is_pagination:
                 self._log(DEBUG, "Pagination disabled, exiting loop")
                 return
-            # TODO: Move pagination logic to separate method
-            match api_version:
-                case APIVersion.CLOUD:
-                    if data["isLast"]:
-                        self._log(DEBUG, "All pages fetched, exiting loop")
-                        return
-                    body["nextPageToken"] = data["nextPageToken"]
-                case APIVersion.SOFTWARE_CLOUD:
-                    body["startAt"] = data["startAt"] + data["maxResults"]
-                case _:
-                    raise NotImplementedError(
-                        f"Pagination not implemented for API version: {api_version}"
-                    )
+            body: JSONObject = self._next_page_body(api_version, body, data)
 
     def parse_jql(self, jql: str) -> None:
         """
