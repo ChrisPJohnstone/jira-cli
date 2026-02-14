@@ -1,5 +1,5 @@
 from .subcommand_module import SubCommandModule
-from jira_cli.constants import EnumSubCommands
+from jira_cli.constants import SubCommands
 
 
-type SubCommandsProperty = dict[EnumSubCommands, SubCommandModule]
+type SubCommandsProperty = dict[SubCommands, SubCommandModule]

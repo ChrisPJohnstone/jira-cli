@@ -1,8 +1,8 @@
-from .enum_commands import EnumCommands
+from .enum_commands import Commands
 
 
-HelpCommands: dict[EnumCommands, str] = {
-    EnumCommands.BOARD: "Commands for interacting with Jira boards.",
-    EnumCommands.CONFIG: "Manage Jira CLI configuration.",
-    EnumCommands.ISSUE: "Commands for interacting with Jira tickets.",
+HelpCommands: dict[Commands, str] = {
+    Commands.BOARD: "Commands for interacting with Jira boards.",
+    Commands.CONFIG: "Manage Jira CLI configuration.",
+    Commands.ISSUE: "Commands for interacting with Jira tickets.",
 }
