@@ -10,6 +10,7 @@ from .constants import (
     APIVersion,
     BoardType,
     DEFAULT_PAGE_SIZE,
+    ENDPOINT_JQL_PARSE,
     ENDPOINT_SEARCH_BOARD,
     ENDPOINT_SEARCH_BOARD_ISSUES,
     ENDPOINT_SEARCH_JQL,
@@ -166,7 +167,8 @@ class JiraClient:
         api_version: APIVersion,
         endpoint: str,
         headers: dict[str, str],
-        parameters: JSONObject,
+        body: JSONObject,
+        is_pagination: bool = False,
     ) -> Iterator[JSONObject]:
         """
         Scrolls through paginated API responses.
@@ -176,33 +178,78 @@ class JiraClient:
             api_version (APIVersion): API version to use.
             endpoint (str): API endpoint to call.
             headers (dict[str, str]): HTTP headers for the request.
-            parameters (JSONObject): Query parameters for the request.
+            body (JSONObject): Body for the request.
+            is_pagination (bool): Whether to handle pagination. Defaults to False.
 
         Returns:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
         base_url: str = f"{self.base_url}{api_version}{endpoint}"
+        request_kwargs: JSONObject = {
+            "method": method,
+            "url": base_url,
+            "headers": headers,
+        }
         while True:
-            url: str = f"{base_url}?{urlencode(parameters)}"
-            request: Request = Request(method=method, url=url, headers=headers)
-            self._log(DEBUG, f"Making request to URL: {url}")
+            if method == "GET":
+                request_kwargs["url"] = f"{base_url}?{urlencode(body)}"
+            else:
+                request_kwargs["data"] = json.dumps(body).encode("utf-8")
+            request: Request = Request(**request_kwargs)
+            self._log(DEBUG, f"Making request to URL: {request_kwargs['url']}")
             response: HTTPResponse = urlopen(request)
             # TODO: Improve handling
-            data: JSONObject = json.loads(response.read().decode("utf-8"))
+            data_str: str = response.read().decode("utf-8")
+            self._log(DEBUG, f"Received response: {data_str}")
+            data: JSONObject = json.loads(data_str)
             yield data
+            if not is_pagination:
+                self._log(DEBUG, "Pagination disabled, exiting loop")
+                return
             # TODO: Move pagination logic to separate method
             match api_version:
                 case APIVersion.CLOUD:
                     if data["isLast"]:
                         self._log(DEBUG, "All tickets fetched, exiting loop")
                         return
-                    parameters["nextPageToken"] = data["nextPageToken"]
+                    body["nextPageToken"] = data["nextPageToken"]
                 case APIVersion.SOFTWARE_CLOUD:
-                    parameters["startAt"] = data["startAt"] + data["maxResults"]
+                    body["startAt"] = data["startAt"] + data["maxResults"]
                 case _:
                     raise NotImplementedError(
                         f"Pagination not implemented for API version: {api_version}"
                     )
+
+    def parse_jql(self, jql: str) -> None:
+        """
+        Parses a JQL query string into a JSON object.
+
+        Args:
+            jql (str): JQL query string.
+
+        Raises:
+            ValueError: If there are errors in the JQL query.
+        """
+        self._log(DEBUG, "Parsing JQL query")
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {self.auth_header}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        query: dict[str, str] = {"validation": "strict"}
+        # TODO: Support validation arg
+        # TODO: Maybe move handling query to `get_results` method
+        body: JSONObject = {"queries": [jql]}
+        for response in self.get_results(
+            method="POST",
+            api_version=APIVersion.CLOUD,
+            endpoint=f"{ENDPOINT_JQL_PARSE}?{urlencode(query)}",
+            headers=headers,
+            body=body,
+        ):
+            query: JSONObject = response["queries"][0]
+            if "errors" in query:
+                raise ValueError(f"JQL parsing errors: {query['errors']}")
 
     def search_issues(
         self,
@@ -221,23 +268,24 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the issues.
         """
-        # TODO: Validate JQL
         self._log(DEBUG, "Fetching issues")
+        self.parse_jql(jql)
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
         }
-        parameters: JSONObject = {"jql": jql, "maxResults": self.page_size}
+        body: JSONObject = {"jql": jql, "maxResults": self.page_size}
         if fields is not None:
-            parameters["fields"] = ",".join(fields)
-            parameters["fieldsByKeys"] = True
+            body["fields"] = ",".join(fields)
+            body["fieldsByKeys"] = True
         counter: int = 0
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.CLOUD,
             endpoint=ENDPOINT_SEARCH_JQL,
             headers=headers,
-            parameters=parameters,
+            body=body,
+            is_pagination=True,
         ):
             for issue in response["issues"]:
                 yield issue
@@ -270,20 +318,21 @@ class JiraClient:
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
         }
-        parameters: JSONObject = {"maxResults": self.page_size}
+        body: JSONObject = {"maxResults": self.page_size}
         if name is not None:
-            parameters["name"] = name
+            body["name"] = name
         if board_type is not None:
-            parameters["type"] = board_type
+            body["type"] = board_type
         if project is not None:
-            parameters["projectKeyOrId"] = project
+            body["projectKeyOrId"] = project
         counter: int = 0
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
             endpoint=ENDPOINT_SEARCH_BOARD,
             headers=headers,
-            parameters=parameters,
+            body=body,
+            is_pagination=True,
         ):
             dashboards: list[JSONObject] = response["values"]
             if len(dashboards) == 0:
@@ -314,20 +363,22 @@ class JiraClient:
             Iterator[JSONObject]: An iterator over the issues.
         """
         self._log(DEBUG, f"Fetching issues for board ID: {board_id}")
+        body: JSONObject = {"maxResults": self.page_size}
+        if jql is not None:
+            self.parse_jql(jql)
+            body["jql"] = jql
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
         }
-        parameters: JSONObject = {"maxResults": self.page_size}
-        if jql is not None:
-            parameters["jql"] = jql
         counter: int = 0
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
             endpoint=ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id),
             headers=headers,
-            parameters=parameters,
+            body=body,
+            is_pagination=True,
         ):
             issues: list[JSONObject] = response["issues"]
             if len(issues) == 0:
