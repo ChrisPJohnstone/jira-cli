@@ -15,6 +15,7 @@ from .constants import (
     ENDPOINT_SEARCH_BOARD_ISSUES,
     ENDPOINT_SEARCH_JQL,
 )
+from .type_definitions import RequestKwargs
 from jira_cli.config import Config
 from jira_cli.type_definitions import JSONObject
 
@@ -137,7 +138,7 @@ class JiraClient:
         Returns:
             str: Formatted log message.
         """
-        return f"[Config] {message}"
+        return f"[Jira Client] {message}"
 
     def _log(self, level: int, message: str) -> None:
         """
@@ -160,6 +161,36 @@ class JiraClient:
         auth_bytes: bytes = auth_string.encode("ascii")
         base64_bytes: bytes = b64encode(auth_bytes)
         return base64_bytes.decode("ascii")
+
+    def _request(
+        self,
+        method: str,
+        url: str,
+        headers: dict[str, str] | None = None,
+        body: JSONObject | None = None,
+    ) -> HTTPResponse:
+        """Make an HTTP request.
+
+        Args:
+            method: The HTTP method to use.
+            url: The URL to send the request to.
+            headers: The headers to include in the request.
+            body: The body of the request.
+
+        Returns:
+            The HTTP response.
+        """
+        kwargs: RequestKwargs = {"method": method, "url": url}
+        if headers:
+            kwargs["headers"] = headers
+        if body:
+            if method == "GET":
+                kwargs["url"] += f"?{urlencode(body)}"
+            else:
+                kwargs["data"] = json.dumps(body).encode("utf-8")
+        self._log(DEBUG, f"Making request with kwargs: {kwargs}")
+        request: Request = Request(**kwargs)
+        return urlopen(request)
 
     def get_results(
         self,
@@ -185,23 +216,14 @@ class JiraClient:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
         base_url: str = f"{self.base_url}{api_version}{endpoint}"
-        request_kwargs: JSONObject = {
-            "method": method,
-            "url": base_url,
-            "headers": headers,
-        }
         while True:
-            if method == "GET":
-                request_kwargs["url"] = f"{base_url}?{urlencode(body)}"
-            else:
-                request_kwargs["data"] = json.dumps(body).encode("utf-8")
-            request: Request = Request(**request_kwargs)
-            self._log(DEBUG, f"Making request to URL: {request_kwargs['url']}")
-            response: HTTPResponse = urlopen(request)
-            # TODO: Improve handling
-            data_str: str = response.read().decode("utf-8")
-            self._log(DEBUG, f"Received response: {data_str}")
-            data: JSONObject = json.loads(data_str)
+            response: HTTPResponse = self._request(
+                method=method,
+                url=base_url,
+                headers=headers,
+                body=body,
+            )
+            data: JSONObject = json.loads(response.read().decode("utf-8"))
             yield data
             if not is_pagination:
                 self._log(DEBUG, "Pagination disabled, exiting loop")
@@ -210,7 +232,7 @@ class JiraClient:
             match api_version:
                 case APIVersion.CLOUD:
                     if data["isLast"]:
-                        self._log(DEBUG, "All tickets fetched, exiting loop")
+                        self._log(DEBUG, "All pages fetched, exiting loop")
                         return
                     body["nextPageToken"] = data["nextPageToken"]
                 case APIVersion.SOFTWARE_CLOUD:
