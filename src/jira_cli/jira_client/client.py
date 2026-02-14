@@ -10,7 +10,9 @@ from .constants import (
     APIVersion,
     BoardType,
     DEFAULT_PAGE_SIZE,
+    DEFAULT_JQL_VALIDATION,
     Endpoint,
+    JQLValidation,
 )
 from .type_definitions import RequestKwargs
 from jira_cli.config import Config
@@ -241,24 +243,31 @@ class JiraClient:
                 return
             body: JSONObject = self._next_page_body(api_version, body, data)
 
-    def parse_jql(self, jql: str) -> None:
+    def parse_jql(
+        self,
+        jql: str,
+        validation: JQLValidation = DEFAULT_JQL_VALIDATION,
+    ) -> None:
         """
         Parses a JQL query string into a JSON object.
 
         Args:
             jql (str): JQL query string.
+            validation (JQLValidation): Validation level for the JQL query. Defaults to DEFAULT_JQL_VALIDATION.
 
         Raises:
+            ValueError: If the validation level is invalid.
             ValueError: If there are errors in the JQL query.
         """
+        if validation not in JQLValidation:
+            raise ValueError(f"Invalid JQL validation level: {validation}")
         self._log(DEBUG, "Parsing JQL query")
         headers: dict[str, str] = {
             "Authorization": f"Basic {self.auth_header}",
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
-        query: dict[str, str] = {"validation": "strict"}
-        # TODO: Support validation arg
+        query: dict[str, str] = {"validation": validation}
         # TODO: Maybe move handling query to `get_results` method
         body: JSONObject = {"queries": [jql]}
         for response in self.get_results(
