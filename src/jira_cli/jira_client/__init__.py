@@ -1,10 +1,8 @@
 from .constants import (
     APIVersion,
     BoardType,
+    Endpoint,
     DEFAULT_PAGE_SIZE,
-    ENDPOINT_SEARCH_BOARD,
-    ENDPOINT_SEARCH_BOARD_ISSUES,
-    ENDPOINT_SEARCH_JQL,
 )
 from .type_definitions import (
     ArgsSearchBoardIssues,
@@ -18,9 +16,7 @@ __all__: list[str] = [
     "ArgsSearchBoardIssues",
     "ArgsSearchBoards",
     "BoardType",
+    "Endpoint",
     "DEFAULT_PAGE_SIZE",
-    "ENDPOINT_SEARCH_BOARD",
-    "ENDPOINT_SEARCH_BOARD_ISSUES",
-    "ENDPOINT_SEARCH_JQL",
     "JiraClient",
 ]
