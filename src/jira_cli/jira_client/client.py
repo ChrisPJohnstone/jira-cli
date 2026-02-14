@@ -166,6 +166,7 @@ class JiraClient:
         method: str,
         url: str,
         headers: dict[str, str] | None = None,
+        parameters: dict[str, str] | None = None,
         body: JSONObject | None = None,
     ) -> HTTPResponse:
         """Make an HTTP request.
@@ -174,7 +175,8 @@ class JiraClient:
             method: The HTTP method to use.
             url: The URL to send the request to.
             headers: The headers to include in the request.
-            body: The body of the request.
+            parameters: The query parameters to include in the URL.
+            body: The body to include in the request.
 
         Returns:
             The HTTP response.
@@ -182,9 +184,12 @@ class JiraClient:
         kwargs: RequestKwargs = {"method": method, "url": url}
         if headers:
             kwargs["headers"] = headers
+        if parameters:
+            kwargs["url"] += f"?{urlencode(parameters)}"
         if body:
             if method == "GET":
-                kwargs["url"] += f"?{urlencode(body)}"
+                prefix: str = "&" if parameters else "?"
+                kwargs["url"] += f"{prefix}{urlencode(body)}"
             else:
                 kwargs["data"] = json.dumps(body).encode("utf-8")
         self._log(DEBUG, f"Making request with kwargs: {kwargs}")
@@ -197,6 +202,17 @@ class JiraClient:
         body: JSONObject,
         response: JSONObject,
     ) -> JSONObject:
+        """
+        Generates the body for the next page of results based on the API version.
+
+        Args:
+            api_version (APIVersion): The API version being used.
+            body (JSONObject): The current request body.
+            response (JSONObject): The response from the current request.
+
+        Returns:
+            JSONObject: The body for the next page of results.
+        """
         output: JSONObject = body.copy()
         match api_version:
             case APIVersion.CLOUD:
@@ -217,6 +233,7 @@ class JiraClient:
         endpoint: str,
         headers: dict[str, str],
         body: JSONObject,
+        parameters: dict[str, str] | None = None,
         is_pagination: bool = False,
     ) -> Iterator[JSONObject]:
         """
@@ -227,7 +244,8 @@ class JiraClient:
             api_version (APIVersion): API version to use.
             endpoint (str): API endpoint to call.
             headers (dict[str, str]): HTTP headers for the request.
-            body (JSONObject): Body for the request.
+            body (JSONObject): Request body for the API call.
+            parameters (dict[str, str] | None): Query parameters for the request. Defaults to None.
             is_pagination (bool): Whether to handle pagination. Defaults to False.
 
         Returns:
@@ -235,7 +253,13 @@ class JiraClient:
         """
         url: str = f"{self.base_url}{api_version}{endpoint}"
         while body:
-            response: HTTPResponse = self._request(method, url, headers, body)
+            response: HTTPResponse = self._request(
+                method=method,
+                url=url,
+                headers=headers,
+                body=body,
+                parameters=parameters,
+            )
             data: JSONObject = json.loads(response.read().decode("utf-8"))
             yield data
             if not is_pagination:
@@ -267,14 +291,13 @@ class JiraClient:
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
-        query: dict[str, str] = {"validation": validation}
-        # TODO: Maybe move handling query to `get_results` method
         body: JSONObject = {"queries": [jql]}
         for response in self.get_results(
             method="POST",
             api_version=APIVersion.CLOUD,
-            endpoint=f"{Endpoint.JQL_PARSE}?{urlencode(query)}",
+            endpoint=Endpoint.JQL_PARSE,
             headers=headers,
+            parameters={"validation": validation},
             body=body,
         ):
             query: JSONObject = response["queries"][0]
