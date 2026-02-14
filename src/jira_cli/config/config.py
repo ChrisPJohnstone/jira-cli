@@ -143,6 +143,6 @@ class Config:
         """
         return {
             "jira_base_url": self.jira_base_url,
-            "jira_api_token": self.jira_api_token,
+            "jira_api_token": "*" * len(self.jira_api_token),
             "jira_email": self.jira_email,
         }
