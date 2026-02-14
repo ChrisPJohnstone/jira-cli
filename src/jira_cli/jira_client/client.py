@@ -10,10 +10,7 @@ from .constants import (
     APIVersion,
     BoardType,
     DEFAULT_PAGE_SIZE,
-    ENDPOINT_JQL_PARSE,
-    ENDPOINT_SEARCH_BOARD,
-    ENDPOINT_SEARCH_BOARD_ISSUES,
-    ENDPOINT_SEARCH_JQL,
+    Endpoint,
 )
 from .type_definitions import RequestKwargs
 from jira_cli.config import Config
@@ -265,7 +262,7 @@ class JiraClient:
         for response in self.get_results(
             method="POST",
             api_version=APIVersion.CLOUD,
-            endpoint=f"{ENDPOINT_JQL_PARSE}?{urlencode(query)}",
+            endpoint=f"{Endpoint.JQL_PARSE}?{urlencode(query)}",
             headers=headers,
             body=body,
         ):
@@ -304,7 +301,7 @@ class JiraClient:
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.CLOUD,
-            endpoint=ENDPOINT_SEARCH_JQL,
+            endpoint=Endpoint.SEARCH_JQL,
             headers=headers,
             body=body,
             is_pagination=True,
@@ -351,7 +348,7 @@ class JiraClient:
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
-            endpoint=ENDPOINT_SEARCH_BOARD,
+            endpoint=Endpoint.SEARCH_BOARD,
             headers=headers,
             body=body,
             is_pagination=True,
@@ -397,7 +394,7 @@ class JiraClient:
         for response in self.get_results(
             method="GET",
             api_version=APIVersion.SOFTWARE_CLOUD,
-            endpoint=ENDPOINT_SEARCH_BOARD_ISSUES.format(board_id=board_id),
+            endpoint=Endpoint.SEARCH_BOARD_ISSUES.format(board_id=board_id),
             headers=headers,
             body=body,
             is_pagination=True,
