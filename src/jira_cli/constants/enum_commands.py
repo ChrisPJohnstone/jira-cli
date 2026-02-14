@@ -2,7 +2,7 @@ from enum import StrEnum, unique
 
 
 @unique
-class EnumCommands(StrEnum):
+class Commands(StrEnum):
     BOARD = "board"
     CONFIG = "config"
     ISSUE = "issue"

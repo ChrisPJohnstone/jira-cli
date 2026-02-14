@@ -1,16 +1,16 @@
-from .enum_commands import EnumCommands
-from .enum_subcommands import EnumSubCommands
+from .enum_commands import Commands
+from .enum_subcommands import SubCommands
 
 
-HelpSubCommands: dict[EnumCommands, dict[EnumSubCommands, str]] = {
-    EnumCommands.BOARD: {
-        EnumSubCommands.SEARCH: "List Jira boards.",
-        EnumSubCommands.ISSUES: "List issues for a Jira board.",
+HelpSubCommands: dict[Commands, dict[SubCommands, str]] = {
+    Commands.BOARD: {
+        SubCommands.SEARCH: "List Jira boards.",
+        SubCommands.ISSUES: "List issues for a Jira board.",
     },
-    EnumCommands.CONFIG: {
-        EnumSubCommands.SHOW: "Show Jira CLI configuration.",
+    Commands.CONFIG: {
+        SubCommands.SHOW: "Show Jira CLI configuration.",
     },
-    EnumCommands.ISSUE: {
-        EnumSubCommands.SEARCH: "List Jira tickets",
+    Commands.ISSUE: {
+        SubCommands.SEARCH: "List Jira tickets",
     },
 }
