@@ -6,6 +6,25 @@ A Command Line Interface (CLI) tool for interfacing with Jira because leaving th
 
 Currently implemented using only [Python standard library](https://docs.python.org/3/library/index.html) because why not.
 
+## Roadmap
+
+One of the main motivations for making this project (beyond personal entertainment) was because existing CLI/TUI tools didn't have great support from working for a Jira board (this does seem to be at least partially a fault of the API since it doesn't appear possible get things like swimlanes) so the project will likely be focused on that aspect of Jira.
+- Board Interaction
+    - [x] Get list of boards
+    - [x] Get list of issues from a board
+    - [ ] Get swinlames from a board
+    - [ ] Get list of issues from a swimlane
+- Ticket Interaction
+    - [x] Get details of a ticket
+    - [ ] Transition a ticket
+    - [ ] Assign a ticket
+    - [ ] Comment on a ticket
+- Terminal User Interface (TUI)
+    - [ ] Interactive ticket view
+    - [ ] Interactive view for issues
+        - [ ] Issues from board
+        - [ ] Issues from swimlane
+
 ## Usage
 
 ### Prerequisites
