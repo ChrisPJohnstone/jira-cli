@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from ._base import inheritable_parser
 
 
-def id(help_str: str) -> ArgumentParser:
+def identifier(help_str: str) -> ArgumentParser:
     """
     Creates an inheritable argument parser for a limit integer argument.
 
