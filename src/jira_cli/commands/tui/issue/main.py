@@ -16,5 +16,5 @@ def main(args: Namespace) -> None:
     jira_client: JiraClient = JiraClient.from_config(config, args.logger)
     tui: TUIClient = TUIClient(args.logger)
     window_config: ConfigWindow = tui.window_config()
-    window_issue: WindowIssue = WindowIssue(window_config, jira_client)
+    window_issue: WindowIssue = WindowIssue(window_config, jira_client, args.id)
     tui.init(window_issue)
