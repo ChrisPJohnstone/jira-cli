@@ -6,3 +6,4 @@ class Commands(StrEnum):
     BOARD = "board"
     CONFIG = "config"
     ISSUE = "issue"
+    TUI = "tui"

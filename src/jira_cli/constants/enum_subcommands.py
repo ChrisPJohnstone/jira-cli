@@ -5,4 +5,5 @@ from enum import StrEnum, unique
 class SubCommands(StrEnum):
     SEARCH = "list"
     SHOW = "show"
+    ISSUE = "issue"
     ISSUES = "issues"
