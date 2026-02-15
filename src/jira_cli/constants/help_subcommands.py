@@ -13,4 +13,7 @@ HelpSubCommands: dict[Commands, dict[SubCommands, str]] = {
     Commands.ISSUE: {
         SubCommands.SEARCH: "List Jira tickets",
     },
+    Commands.TUI: {
+        SubCommands.ISSUE: "Open a TUI to view and edit a Jira issue.",
+    },
 }
