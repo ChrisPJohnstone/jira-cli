@@ -251,6 +251,7 @@ class JiraClient:
         Returns:
             Iterator[JSONObject]: An iterator over the paginated responses.
         """
+        # TODO: Make body optional
         url: str = f"{self.base_url}{api_version}{endpoint}"
         while body:
             response: HTTPResponse = self._request(
@@ -303,6 +304,34 @@ class JiraClient:
             query: JSONObject = response["queries"][0]
             if "errors" in query:
                 raise ValueError(f"JQL parsing errors: {query['errors']}")
+
+    def get_issue(self, issue_id: str, fields: list[str]) -> JSONObject:
+        """
+        Retrieves a single issue by its ID.
+
+        Args:
+            issue_id (str): The ID of the issue to retrieve.
+
+        Returns:
+            JSONObject: The retrieved issue.
+        """
+        # TODO: Make fields optional
+        self._log(DEBUG, f"Fetching issue with ID: {issue_id}")
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {self.auth_header}",
+            "Accept": "application/json",
+        }
+        body: JSONObject = {"fields": ",".join(fields), "fieldsByKeys": True}
+        for response in self.get_results(
+            method="GET",
+            api_version=APIVersion.CLOUD,
+            endpoint=Endpoint.ISSUE_GET.format(issue_id=issue_id),
+            headers=headers,
+            body=body,
+            is_pagination=False,
+        ):
+            return response
+        raise ValueError(f"Issue with ID {issue_id} not found")
 
     def search_issues(
         self,
